@@ -1,4 +1,4 @@
-Here's a well-structured **README** file for your **Video Player App** using **Flutter, Provider, API, Video Player Package, and Chewie**:  
+
 
 ---
 
