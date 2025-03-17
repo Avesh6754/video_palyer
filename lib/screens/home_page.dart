@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_palyer/screens/video_player.dart';
@@ -9,101 +11,99 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var providerTrue = Provider.of<YoutubeProvider>(context, listen: true);
-    var providerFalse = Provider.of<YoutubeProvider>(context, listen: false);
+    var provider = Provider.of<YoutubeProvider>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Hi, Avesh '),
+        title: const Text('Hi, Avesh '),
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.videocam_rounded)),
-          IconButton(onPressed: () {}, icon: Icon(Icons.search)),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.videocam_rounded)),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
           IconButton(
             onPressed: () {},
-            icon: Icon(Icons.account_circle_outlined),
+            icon: const Icon(Icons.account_circle_outlined),
           ),
         ],
       ),
-      body: (providerTrue.youtubeModal != null)
-          ? FutureBuilder(
-              future: providerFalse.fetch(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError && snapshot.hasData) {
-                  return Center(child: Text('Video Not Fetch'));
-                }
-                final category = snapshot.data!;
-                return ListView.builder(
-                  itemCount: category.categorylIst[0].videoList.length,
-                  itemBuilder: (context, index) => GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => VideoPlayer(
-                                description: category.categorylIst[0]
-                                    .videoList[index].description,
-                                name: category
-                                    .categorylIst[0].videoList[index].title,
-                                subtitel: category
-                                    .categorylIst[0].videoList[index].subtitle,
-                                videoUrl: category
-                                    .categorylIst[0].videoList[index].source,
-                              )));
-                    },
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 200,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                category.categorylIst[0].videoList[index].thumb,
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: NetworkImage(category
-                                .categorylIst[0].videoList[index].thumb),
-                          ),
-                          title: Text(
-                            category.categorylIst[0].videoList[index].title,
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                                wordSpacing: 2),
-                          ),
-                          subtitle: Text(
-                            category.categorylIst[0].videoList[index].subtitle,
-                            style: TextStyle(fontSize: 12, wordSpacing: 2),
-                          ),
-                        ),
-                      ],
+      body: FutureBuilder(
+        future: provider.fetch(), // Fetch data
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error fetching videos'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.categorylIst.isEmpty) {
+            return const Center(child: Text('No Data Found'));
+          }
+
+          final category = snapshot.data!;
+
+          return ListView.builder(
+            itemCount: category.categorylIst[0].videoList.length,
+            itemBuilder: (context, index) {
+              var video = category.categorylIst[0].videoList[index];
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => VideoPlayer(
+                      description: video.description,
+                      name: video.title,
+                      subtitel: video.subtitle,
+                      videoUrl: video.source.isNotEmpty ? video.source.first : '',
                     ),
-                  ),
-                );
-              },
-            )
-          : Center(
-              child: Text('No Data Found'),
-            ),
+                  ));
+                  log("========askdjsu ============${ video.source.isNotEmpty ? video.source.first : ''}");
+                },
+                child: Column(
+                  children: [
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: NetworkImage(video.thumb),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: NetworkImage(video.thumb),
+                      ),
+                      title: Text(
+                        video.title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          wordSpacing: 2,
+                        ),
+                      ),
+                      subtitle: Text(
+                        video.subtitle,
+                        style: const TextStyle(fontSize: 12, wordSpacing: 2),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
       bottomNavigationBar: BottomAppBar(
         height: 50,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Icon(
-              Icons.home,
-            ),
-            Icon(
-              Icons.local_fire_department,
-            ),
-            Icon(
-              Icons.folder_copy_sharp,
-            ),
-            Icon(
-              Icons.history,
-            )
+          children: const [
+            Icon(Icons.home),
+            Icon(Icons.local_fire_department),
+            Icon(Icons.folder_copy_sharp),
+            Icon(Icons.history),
           ],
         ),
       ),

@@ -39,7 +39,7 @@ class Videos {
     return Videos(
       description: m1['description'] ?? '',
       title: m1['title'] ?? '',
-      source: (m1['source'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      source: List<String>.from(m1["sources"].map((x) => x)),
       subtitle: m1['subtitle'] ?? '',
       thumb: m1['thumb'] ?? '',
     );
